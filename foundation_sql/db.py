@@ -10,7 +10,6 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import SQLAlchemyError
 
 from jinja2sql import Jinja2SQL
-from enum import Enum
 from datetime import datetime
 
 NESTED_SPLITTER = "."

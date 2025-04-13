@@ -3,12 +3,15 @@ import functools
 import logging
 from typing import Any, Callable, Optional
 
-from prompt import SQLPromptGenerator, FunctionSpec
-from gen import SQLGenerator
-from cache import SQLTemplateCache
-import db
+from foundation_sql.prompt import SQLPromptGenerator, FunctionSpec
+from foundation_sql.gen import SQLGenerator
+from foundation_sql.cache import SQLTemplateCache
+from foundation_sql import db
 from typing import Callable, Dict, Optional
 
+from importlib import resources as impresources
+
+DEFAULT_SYSTEM_PROMPT = impresources.read_text('foundation_sql', 'prompts.md')
 
 
 class SQLQueryDecorator:
@@ -52,10 +55,11 @@ class SQLQueryDecorator:
         self.regen = regen
         self.cache_dir = cache_dir
         self.schema = schema or self.load_file(schema_path)
-        self.system_prompt = system_prompt or self.load_file(system_prompt_path)
-        # Setup logging
-        self.logger = logging.getLogger(__name__)
-        
+        if system_prompt or system_prompt_path:
+            self.system_prompt = system_prompt or self.load_file(system_prompt_path)
+        else:
+            self.system_prompt = DEFAULT_SYSTEM_PROMPT
+
         # Initialize cache and SQL generator
         self.cache = SQLTemplateCache(cache_dir=cache_dir)
 

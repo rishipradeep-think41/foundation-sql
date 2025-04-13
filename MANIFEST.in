@@ -1,6 +1,10 @@
 include LICENSE
 include README.md
 include requirements.txt
+
+# Include all test directories and files
+recursive-include foundation_sql/ *
+
 global-exclude *.pyc
 global-exclude __pycache__
 global-exclude .env*

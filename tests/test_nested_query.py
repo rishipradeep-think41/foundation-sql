@@ -1,7 +1,7 @@
 from typing import List, Optional
-from tests import common
+from foundation_sql.tests import common
 from pydantic import BaseModel
-from query import SQLQueryDecorator
+from foundation_sql.query import SQLQueryDecorator
 
 class Address(BaseModel):
     street: str
@@ -32,14 +32,14 @@ CREATE TABLE IF NOT EXISTS users_with_profile (
 )
 """
 
-@SQLQueryDecorator(schema=TABLES_SCHEMA, system_prompt_path="prompts.md")
+@SQLQueryDecorator(schema=TABLES_SCHEMA)
 def get_users_with_profile() -> List[UserWithProfile]:
     """
     Gets all users with their profiles.
     """
     pass
 
-@SQLQueryDecorator(schema=TABLES_SCHEMA, system_prompt_path="prompts.md")
+@SQLQueryDecorator(schema=TABLES_SCHEMA)
 def create_user_with_profile(user: UserWithProfile) -> int:
     """
     Creates a new user with a profile.

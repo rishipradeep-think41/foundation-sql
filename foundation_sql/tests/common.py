@@ -1,5 +1,5 @@
 import unittest
-import db
+from foundation_sql import db
 import dotenv
 
 dotenv.load_dotenv()
