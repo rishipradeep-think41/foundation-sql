@@ -3,3 +3,4 @@ python-dotenv
 sqlalchemy
 jinja2sql
 pydantic
+openai

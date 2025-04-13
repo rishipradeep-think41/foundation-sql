@@ -13,8 +13,11 @@ from jinja2sql import Jinja2SQL
 from enum import Enum
 from datetime import datetime
 
+NESTED_SPLITTER = "."
 
 j2sql = Jinja2SQL()
+
+
 
 class Database:
     """Database operations for Foundation."""
@@ -289,8 +292,8 @@ def unflatten_dict(flat_dict: Dict[str, Any]) -> Dict[str, Any]:
     
     # First, categorize the keys
     for key, value in flat_dict.items():
-        if '__' in key:
-            prefix, rest = key.split('__', 1)
+        if NESTED_SPLITTER in key:
+            prefix, rest = key.split(NESTED_SPLITTER, 1)
             if prefix not in grouped_keys:
                 grouped_keys[prefix] = {}
             grouped_keys[prefix][rest] = value
@@ -302,7 +305,7 @@ def unflatten_dict(flat_dict: Dict[str, Any]) -> Dict[str, Any]:
     
     for prefix, nested_dict in grouped_keys.items():
         # Check if this prefix contains nested structures
-        has_nested = any('__' in key for key in nested_dict.keys())
+        has_nested = any(NESTED_SPLITTER in key for key in nested_dict.keys())
         
         if has_nested:
             # Recursively unflatten the nested structure
