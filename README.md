@@ -2,7 +2,15 @@
 
 A Python-based SQL query generator that helps in generating and managing SQL queries.
 
-## Setup
+## Installation
+
+You can install the package directly from PyPI:
+
+```bash
+pip install foundation-sql
+```
+
+## Development Setup
 
 1. Clone the repository
 2. Create a virtual environment:
@@ -18,6 +26,18 @@ A Python-based SQL query generator that helps in generating and managing SQL que
    ```bash
    cp .env_template .env
    ```
+
+## Usage
+
+```python
+from foundation_sql import query
+
+# Initialize query generator
+generator = query.QueryGenerator()
+
+# Generate SQL query
+sql = generator.generate("your query description here")
+```
 
 ## Development
 
