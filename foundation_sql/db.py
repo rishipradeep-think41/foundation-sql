@@ -2,6 +2,7 @@
 Database operations module for Foundation.
 """
 
+import logging
 import os
 from typing import Dict, Any, Optional, Type, Union, List
 from pydantic import BaseModel
@@ -15,6 +16,10 @@ from datetime import datetime
 NESTED_SPLITTER = "."
 
 j2sql = Jinja2SQL()
+
+# logging.basicConfig(level=logging.DEBUG)
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -102,8 +107,10 @@ class Database:
                     total_rows = 0
                     last_result = None
                     
+                    logger.debug(f"Executing statements: {len(statements)}")
                     # Execute each statement
                     for statement in statements:
+                        logger.debug(f"Executing statement: {statement} {params}")
                         result = conn.execute(text(statement), params)
                         total_rows += result.rowcount
                         
@@ -116,6 +123,7 @@ class Database:
                         # Convert SQLAlchemy Row objects to plain dictionaries
                         # to avoid leaking SQLAlchemy implementation details
                         rows = [dict(row._mapping) for row in last_result]
+                        logger.debug(f"Returning rows: {rows}")
                         return QueryResult(rows)
                     
                     # If no rows affected, return 0
@@ -266,26 +274,23 @@ def parse_query_to_pydantic(data: Dict[str, Any], model_class: Type[BaseModel]) 
     """
     if not data:
         return None
-    
-    # print(data, model_class)
-    # Step 1: Unflatten the dictionary to create a nested structure
+
     unflattened_data = unflatten_dict(data)
-    # Step 2: Create the model instance
     return model_class(**unflattened_data)
 
 
+
 def unflatten_dict(flat_dict: Dict[str, Any]) -> Dict[str, Any]:
-    """Convert a flattened dictionary with keys like 'parent__child__grandchild' 
+    """Convert a flattened dictionary with keys like 'parent.child.grandchild' (using NESTED_SPLITTER)
     into a nested dictionary structure.
     
     Args:
-        flat_dict: Dictionary with flattened keys using double-underscore notation
+        flat_dict: Dictionary with flattened keys using NESTED_SPLITTER for nesting
         
     Returns:
         Nested dictionary structure where nested objects with all None values 
         are replaced by None at the parent level.
     """
-    # Group keys by common prefixes to pre-check for all-None values
     grouped_keys = {}
     direct_keys = {}
     

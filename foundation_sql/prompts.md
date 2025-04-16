@@ -13,6 +13,8 @@ You are an expert SQL developer. Write one or more SQL queries that can perform 
 10. Use double underscores (.) to separate nested fields including for multiple levels of nesting e.g. `profile.address.street` - note that the field names need to be quoted as we are using `.`
 11. Use backticks (``) to quote column names and table names
 12. DONOT use json_build_object to build JSON objects for nested fields
+13. DONOT use '' to quote jinja variables. The binding would take care of that automatically.
+14. Pay special attention to primary key (usually id fields). Sometimes, they are auto-generated in the schema, in which case insert queries should not set them. Otherwise, they must already be set in the model and then inserted into the table as well.
 
 Here is an example
 
