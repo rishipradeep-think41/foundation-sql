@@ -4,6 +4,7 @@ Database operations module for Foundation.
 
 import logging
 import os
+from types import NoneType
 from typing import Dict, Any, Optional, Type, Union, List
 from pydantic import BaseModel
 from sqlalchemy import create_engine, text
@@ -273,9 +274,16 @@ def parse_query_to_pydantic(data: Dict[str, Any], model_class: Type[BaseModel]) 
         Instance of the Pydantic model or None if data is None
     """
     if not data:
-        return None
+        return None    
 
     unflattened_data = unflatten_dict(data)
+
+    # Check the response type and transform accordingly
+    if model_class == int:
+        return int(unflattened_data["result"])
+    elif model_class == NoneType:
+        return None
+    
     return model_class(**unflattened_data)
 
 
