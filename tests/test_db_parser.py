@@ -11,6 +11,7 @@ from foundation_sql import db
 from pydantic import BaseModel, Field
 from enum import Enum
 from typing import Optional, List
+from tests import common
 
 # --- Test SQL Schema ---
 TEST_SCHEMA_SQL = """
@@ -81,25 +82,14 @@ class Task(BaseModel):
     parent_task: Optional['Task'] = None
     created_at: Optional[datetime] = None
 
-Task.update_forward_refs()
+Task.model_rebuild()
 
 
-class TestDbParser(unittest.TestCase):
+class TestDbParser(common.DatabaseTests):
     """Tests for the db.parse_query_to_pydantic function."""
 
-    def setUp(self):
-        """Set up test fixtures."""
-        # Use in-memory SQLite database for testing
-        self.db_url = "sqlite:///:memory:"
-
-        # Initialize database
-        self.database = db.Database(self.db_url)
-
-        # Override the singleton instance for testing
-        db._db_instance = self.database
-
-        # Initialize schema
-        self.database.init_schema(TEST_SCHEMA_SQL)
+    db_url = "sqlite:///:memory:"
+    schema_sql = TEST_SCHEMA_SQL
 
     def test_parse_basic_model(self):
         """Test parsing a basic model without nested fields or enums."""

@@ -1,6 +1,5 @@
 import os
 import functools
-import logging
 from typing import Any, Callable, Optional
 
 from foundation_sql.prompt import SQLPromptGenerator, FunctionSpec
@@ -39,7 +38,11 @@ class SQLQueryDecorator:
         schema_path: Optional[str] = None,
         system_prompt: Optional[str] = None,
         system_prompt_path: Optional[str] = None,
-        cache_dir: Optional[str] = '__sql__'
+        cache_dir: Optional[str] = '__sql__',
+        db_url: Optional[str] = None,
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None,
+        model: Optional[str] = None,
     ):
         """
         Initialize the SQL query decorator.
@@ -60,13 +63,17 @@ class SQLQueryDecorator:
         else:
             self.system_prompt = DEFAULT_SYSTEM_PROMPT
 
+        self.db_url = db_url
+        if not self.db_url:
+            raise ValueError(f"Database URL not provided either through constructor or {db_url_env} environment variable")
+        
         # Initialize cache and SQL generator
         self.cache = SQLTemplateCache(cache_dir=cache_dir)
 
         self.sql_generator = SQLGenerator(
-            api_key=os.getenv('OPENAI_API_KEY'),
-            base_url=os.getenv('OPENAI_BASE_URL'),
-            model=os.getenv('OPENAI_MODEL', 'llama-3.3-70b-versatile')
+            api_key=api_key,
+            base_url=base_url,
+            model=model
         )
 
         self.repair = repair
@@ -114,7 +121,7 @@ class SQLQueryDecorator:
             # try:
                 # Run the SQL Template
             sql_template = sql_gen(kwargs, error, sql_template)
-            result_data = db.run_sql(sql_template, **kwargs)
+            result_data = db.run_sql(self.db_url, sql_template, **kwargs)
 
             if fn_spec.wrapper == 'list':
                 parsed_result = [

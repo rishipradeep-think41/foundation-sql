@@ -1,8 +1,7 @@
-
 from typing import List
-from foundation_sql.tests import common
+from tests import common
 from pydantic import BaseModel
-from foundation_sql.query import SQLQueryDecorator
+
 
 class User(BaseModel):
     id: str
@@ -21,15 +20,16 @@ CREATE TABLE IF NOT EXISTS users (
 )
 """
 
+query = common.create_query(schema=TABLES_SCHEMA)
 
-@SQLQueryDecorator(schema=TABLES_SCHEMA)
+@query
 def get_users() -> List[User]:
     """
     Gets all users.
     """
     pass
 
-@SQLQueryDecorator(schema=TABLES_SCHEMA)
+@query
 def create_user(user: User) -> int:
     """
     Creates a new user.

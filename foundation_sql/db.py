@@ -15,6 +15,8 @@ from jinja2sql import Jinja2SQL
 from datetime import datetime
 
 NESTED_SPLITTER = "."
+# Singleton instance
+DATABASES = {}
 
 j2sql = Jinja2SQL()
 
@@ -232,24 +234,22 @@ class QueryResult:
         return len(self.rows) == 0
 
 
-# Singleton instance
-_db_instance = None
 
-def get_db(db_url: Optional[str] = None) -> Database:
+def get_db(db_url: str) -> Database:
     """Get the database instance.
     
     Args:
-        db_url: Optional database URL to use
+        db_url: Database URL to use
         
     Returns:
         Database instance
     """
-    global _db_instance
-    if _db_instance is None:
-        _db_instance = Database(db_url)
-    return _db_instance
+    if db_url not in DATABASES:
+        DATABASES[db_url] = Database(db_url)
+    
+    return DATABASES[db_url]
 
-def run_sql(sql_template: str, **context) -> Any:
+def run_sql(db_url: str, sql_template: str, **context) -> Any:
     """Run an SQL template string with jinja2sql for rendering and parameter substitution.
     
     Args:
@@ -260,7 +260,7 @@ def run_sql(sql_template: str, **context) -> Any:
         For SELECT queries: A QueryResult object with methods for data access
         For INSERT/UPDATE/DELETE queries: The number of rows affected
     """
-    return get_db().run_sql(sql_template, **context)
+    return get_db(db_url).run_sql(sql_template, **context)
 
 
 def parse_query_to_pydantic(data: Dict[str, Any], model_class: Type[BaseModel]) -> Optional[BaseModel]:
@@ -335,10 +335,3 @@ def unflatten_dict(flat_dict: Dict[str, Any]) -> Dict[str, Any]:
             result[prefix] = None if is_all_none else nested_dict
     
     return result
-
-
-
-if __name__ == "__main__":
-    # Example usage
-    db = get_db(db_url="sqlite:///local.db")
-    db.init_schema()

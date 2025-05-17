@@ -28,9 +28,15 @@ class SQLGenerator:
         """
         # Setup logging
         self.logger = logging.getLogger(__name__)
-        self.client = OpenAI(api_key=api_key, base_url=base_url)
         self.model = model
-    
+        self.api_key = api_key
+        self.base_url = base_url
+
+    @property
+    def client(self):
+        return OpenAI(api_key=self.api_key, base_url=self.base_url)
+
+
     def generate_sql(self, prompt: str) -> str:
         """
         Generate an SQL template based on the provided prompt.

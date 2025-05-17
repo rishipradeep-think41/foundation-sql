@@ -1,8 +1,7 @@
-
 from typing import List, Optional
-from foundation_sql.tests import common
+from tests import common
 from pydantic import BaseModel
-from foundation_sql.query import SQLQueryDecorator
+
 
 class Workspace(BaseModel):
     id: int
@@ -29,21 +28,23 @@ CREATE TABLE IF NOT EXISTS tasks (
 );
 """
 
-@SQLQueryDecorator(schema=TABLES_SCHEMA)
+query = common.create_query(schema=TABLES_SCHEMA)
+
+@query
 def create_workspace(name: str) -> Workspace:
     """
     Inserts a new workspace and returns the Workspace object.
     """
     pass
 
-@SQLQueryDecorator(schema=TABLES_SCHEMA)
+@query
 def add_task_to_workspace(workspace: Workspace, title: str, description: Optional[str] = None) -> Task:
     """
     Inserts a new task into the workspace and returns the Task object.
     """
     pass
 
-@SQLQueryDecorator(schema=TABLES_SCHEMA)
+@query
 def get_tasks_for_workspace(workspace: Workspace) -> List[Task]:
     """
     Returns all tasks for a workspace as Task objects with nested workspace.
