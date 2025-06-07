@@ -10,7 +10,8 @@ from pydantic import BaseModel
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import SQLAlchemyError
-
+from sqlalchemy import MetaData
+from sqlalchemy.schema import CreateTable
 from jinja2sql import Jinja2SQL
 from datetime import datetime
 
@@ -232,7 +233,28 @@ class QueryResult:
             True if no rows, False otherwise
         """
         return len(self.rows) == 0
+    
 
+# Function to load the schema from the database
+def extract_schema_from_db(db_url: str) -> str:
+    """Extract the schema from the database.
+    
+    Args:
+        db_url: Database URL to use
+        
+    Returns:
+        Schema as a string
+    """
+    engine = create_engine(db_url)
+    metadata = MetaData()
+    metadata.reflect(bind=engine)
+
+    schema_lines = []
+    for table in metadata.sorted_tables:
+        ddl = str(CreateTable(table).compile(engine))
+        schema_lines.append(ddl + ";")
+
+    return "\n\n".join(schema_lines)
 
 
 def get_db(db_url: str) -> Database:
@@ -280,7 +302,8 @@ def parse_query_to_pydantic(data: Dict[str, Any], model_class: Type[BaseModel]) 
 
     # Check the response type and transform accordingly
     if model_class == int:
-        return int(unflattened_data["result"])
+        # FIX : STILL ONLY GETS FIRST LINE OF RESPONSE
+        return int(next(iter(unflattened_data.values())))
     elif model_class == NoneType:
         return None
     

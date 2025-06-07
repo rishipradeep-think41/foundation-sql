@@ -57,15 +57,21 @@ class SQLQueryDecorator:
         self.name = name
         self.regen = regen
         self.cache_dir = cache_dir
-        self.schema = schema or self.load_file(schema_path)
+        self.db_url = db_url or os.environ.get("DATABASE_URL")
+        if ( not self.db_url):
+            raise ValueError(f"Database URL not provided either through constructor or DATABASE_URL environment variable")
+        
+        if (not schema and not schema_path):
+            # Load the schema from the database
+            self.schema = db.extract_schema_from_db(self.db_url)
+
+        else:
+            self.schema = schema or self.load_file(schema_path)
+        
         if system_prompt or system_prompt_path:
             self.system_prompt = system_prompt or self.load_file(system_prompt_path)
         else:
             self.system_prompt = DEFAULT_SYSTEM_PROMPT
-
-        self.db_url = db_url
-        if not self.db_url:
-            raise ValueError(f"Database URL not provided either through constructor or {db_url_env} environment variable")
         
         # Initialize cache and SQL generator
         self.cache = SQLTemplateCache(cache_dir=cache_dir)
