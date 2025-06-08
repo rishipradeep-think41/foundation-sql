@@ -77,8 +77,8 @@ CREATE TABLE IF NOT EXISTS users (
 )
 """
 
-query = query.SQLQueryDecorator(schema=TABLES_SCHEMA, 
-            db_url=DB_URL, 
+query = query.SQLQueryDecorator(schema=TABLES_SCHEMA,
+            db_url=DB_URL,
             api_key=os.getenv("OPENAI_API_KEY"),
             base_url=os.getenv("OPENAI_API_BASE_URL"),
             model=os.getenv("OPENAI_MODEL"))
@@ -110,14 +110,14 @@ class TestQuery(unittest.TestCase):
             db.get_db(self.db_url).init_schema(schema_sql=self.schema_sql, schema_path=self.schema_path)
         else:
             raise ValueError("At least one of schema_sql, schema_path must be provided along with db_url")
-        
+
     def test_users(self):
         users = get_users()
         self.assertEqual(len(users), 0)
-        
+
         user = User(id="xxx", name="John Doe", email="john@example.com", role="user")
         create_user(user=user)
-        
+
         users = get_users()
         self.assertEqual(len(users), 1)
         self.assertEqual(users[0], user)
@@ -126,7 +126,7 @@ class TestQuery(unittest.TestCase):
         """Close the database connection after each test."""
         for _, connection in db.DATABASES.items():
             connection.get_engine().dispose()
-        
+
         db.DATABASES.clear()
 ```
 
@@ -138,9 +138,9 @@ Running these tests would generate the following SQL files
 -- Creates a new user.
 -- Expects user.name, user.email and user.role to be defined
 INSERT INTO `users` (
-    `id`, 
-    `name`, 
-    `email`, 
+    `id`,
+    `name`,
+    `email`,
     `role`
 )
 VALUES (
@@ -156,12 +156,12 @@ VALUES (
 
 -- def get_users() -> List[tests.test_simple_query.User]
 -- Gets all users.
-SELECT 
+SELECT
     `id` as `id`,
     `name` as `name`,
     `email` as `email`,
     `role` as `role`
-FROM 
+FROM
     `users`
 ```
 
@@ -182,7 +182,18 @@ FROM
    cp .env_template .env
    ```
 
-- Run tests: `python -m unittest discover tests`
+## Run tests
+
+```bash
+docker compose up --build
+python -m unittest discover tests
+```
+
+Run a particular test file
+
+```bash
+python -m unittest -v tests/{test_file.py}
+```
 
 ## Project Structure
 
