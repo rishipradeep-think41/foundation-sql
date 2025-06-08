@@ -15,13 +15,12 @@ class Bike(BaseModel):
 setup_postgres_db()
 
 
-# Point to your local PostgreSQL database
 query = common.create_query(
     db_url="postgresql+psycopg2://user:userpassword@localhost:5432/foundation"
 )
 
 
-# Query to insert a bike (PostgreSQL will likely use RETURNING automatically)
+# Query to insert a bike
 @query
 def create_bike(bike: Bike) -> Bike:
     """
@@ -48,7 +47,7 @@ def get_total_price() -> int:
     pass
 
 
-# Query that naturally uses PostgreSQL-only operator
+# Query that should naturally generate a PostgreSQL-only operator
 @query
 def search_bikes_case_insensitive(make_query: str) -> List[Bike]:
     """
@@ -57,7 +56,6 @@ def search_bikes_case_insensitive(make_query: str) -> List[Bike]:
     pass
 
 
-# The test class
 class TestPostgresSchema(common.DatabaseTests):
     db_url = "postgresql+psycopg2://user:userpassword@localhost:5432/foundation"
     schema_sql = None
