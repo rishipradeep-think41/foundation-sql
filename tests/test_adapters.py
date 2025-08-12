@@ -6,12 +6,12 @@ from foundation_sql.db_drivers import SQLAlchemyAdapter
 from foundation_sql import db
 
 
-SYNC_DB_URL = os.environ.get("DATABASE_URL")
+SYNC_DB_URL = "sqlite:///:memory:"
 
 
 TEST_SCHEMA = """
 CREATE TABLE IF NOT EXISTS items (
-    id SERIAL PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     name TEXT NOT NULL
 );
 """
@@ -27,8 +27,6 @@ SELECT id, name FROM items ORDER BY id;
 
 class TestSQLAlchemyAdapter(unittest.TestCase):
     def setUp(self) -> None:
-        if not SYNC_DB_URL:
-            raise unittest.SkipTest("DATABASE_URL not set; skipping Postgres-only tests")
         self.adapter = SQLAlchemyAdapter(SYNC_DB_URL)
         # init schema
         self.adapter.init_schema(TEST_SCHEMA)

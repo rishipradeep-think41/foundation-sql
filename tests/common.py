@@ -64,5 +64,3 @@ class DatabaseTests(unittest.TestCase):
                 connection.get_engine().dispose()
             db.DATABASES.clear()
         db.DATABASES.clear()
-
-
