@@ -7,9 +7,9 @@ import re
 from dotenv import load_dotenv
 load_dotenv()
 
-# Prefer DATABASE_URL from env (e.g., PostgreSQL) for tests; fallback to SQLite in-memory
-# Async tests explicitly read DATABASE_URL themselves and are skipped if absent.
-DB_URL = os.getenv("DATABASE_URL", "sqlite:///:memory:")
+# Force SQLite in-memory for all tests that use this common module.
+# Async/Postgres-specific tests manage their own DATABASE_URL and are skipped if absent.
+DB_URL = "sqlite:///:memory:"
 
 def create_query(schema):
     return SQLQueryDecorator(

@@ -1,4 +1,6 @@
 from typing import List, Optional
+import os
+import shutil
 from tests import common
 from pydantic import BaseModel
 
@@ -34,6 +36,56 @@ CREATE TABLE IF NOT EXISTS users_with_profile (
 
 query = common.create_query(schema=TABLES_SCHEMA)
 
+CACHE_DIR = "__sql__"
+
+class TestNestedQuery(common.DatabaseTests):
+
+    schema_sql = TABLES_SCHEMA
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        # Ensure clean cache dir and seed SQLite/Postgres portable templates
+        if os.path.exists(CACHE_DIR):
+            shutil.rmtree(CACHE_DIR)
+        os.makedirs(CACHE_DIR, exist_ok=True)
+
+        # Portable SELECT using dotted aliases so our unflatten logic can build nested objects
+        with open(os.path.join(CACHE_DIR, "get_users_with_profile.sql"), "w") as f:
+            f.write(
+                """
+                SELECT 
+                    u.id as "id",
+                    u.name as "name",
+                    u.email as "email",
+                    u.role as "role",
+                    u.profile_bio as "profile.bio",
+                    u.address_street as "profile.address.street",
+                    u.address_city as "profile.address.city",
+                    u.address_zip_code as "profile.address.zip_code"
+                FROM users_with_profile u
+                ORDER BY u.id;
+                """.strip()
+            )
+
+        # Portable INSERT template using jinja2 variables (handled by jinja2sql)
+        with open(os.path.join(CACHE_DIR, "create_user_with_profile.sql"), "w") as f:
+            f.write(
+                """
+                INSERT INTO users_with_profile (
+                    id, name, email, role, profile_bio, address_street, address_city, address_zip_code
+                ) VALUES (
+                    {{ user.id }},
+                    {{ user.name | tojson }},
+                    {{ user.email | tojson }},
+                    {{ user.role | tojson }},
+                    {{ user.profile.bio | default(None) | tojson }},
+                    {{ user.profile.address.street | default(None) | tojson }},
+                    {{ user.profile.address.city | default(None) | tojson }},
+                    {{ user.profile.address.zip_code | default(None) | tojson }}
+                );
+                """.strip()
+            )
+
 @query
 def get_users_with_profile() -> List[UserWithProfile]:
     """
@@ -48,10 +100,6 @@ def create_user_with_profile(user: UserWithProfile) -> int:
     """
     pass
 
-class TestNestedQuery(common.DatabaseTests):
-
-    schema_sql = TABLES_SCHEMA
-        
     def test_nested_object_creation_and_retrieval(self):
         # Initially, no users
         users = get_users_with_profile()

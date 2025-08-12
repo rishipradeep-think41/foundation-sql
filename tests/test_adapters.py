@@ -32,6 +32,11 @@ class TestSQLAlchemyAdapter(unittest.TestCase):
         self.adapter = SQLAlchemyAdapter(SYNC_DB_URL)
         # init schema
         self.adapter.init_schema(TEST_SCHEMA)
+        # ensure clean state for each test run
+        try:
+            self.adapter.run_sql("DELETE FROM items;", {})
+        except Exception:
+            pass
 
     def tearDown(self) -> None:
         try:
