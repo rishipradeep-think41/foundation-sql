@@ -1,6 +1,8 @@
 from typing import List
 from tests import common
 from pydantic import BaseModel
+import os
+import shutil
 
 
 class User(BaseModel):
@@ -39,6 +41,46 @@ def create_user(user: User) -> int:
 class TestQuery(common.DatabaseTests):
 
     schema_sql = TABLES_SCHEMA
+    CACHE_DIR = "__sql__"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        # Ensure clean cache dir and seed SQLite-friendly templates for this test
+        if os.path.exists(cls.CACHE_DIR):
+            shutil.rmtree(cls.CACHE_DIR)
+        os.makedirs(cls.CACHE_DIR, exist_ok=True)
+
+        # Deterministic SELECT mapping to Pydantic model fields
+        with open(os.path.join(cls.CACHE_DIR, "get_users.sql"), "w") as f:
+            f.write(
+                (
+                    """
+                    SELECT 
+                        id as "id",
+                        name as "name",
+                        email as "email",
+                        role as "role"
+                    FROM users
+                    ORDER BY id;
+                    """
+                ).strip()
+            )
+
+        # Deterministic INSERT using provided user fields (string id in this schema)
+        with open(os.path.join(cls.CACHE_DIR, "create_user.sql"), "w") as f:
+            f.write(
+                (
+                    """
+                    INSERT INTO users (id, name, email, role)
+                    VALUES (
+                        {{ user.id }},
+                        {{ user.name | tojson }},
+                        {{ user.email | tojson }},
+                        {{ user.role | tojson }}
+                    );
+                    """
+                ).strip()
+            )
         
     def test_users(self):
         users = get_users()

@@ -4,3 +4,5 @@ sqlalchemy
 jinja2sql
 pydantic
 openai
+asyncpg
+psycopg2-binary
