@@ -19,8 +19,10 @@ class FunctionSpec:
         self.name = func.__name__
         self.return_type, self.wrapper = self._extract_return_model(func)
         self.signature = inspect.signature(func)
+
+
         self.docstring = inspect.getdoc(func) or ""
-        self.model_fields = self._model_fields()
+        self.model_fields =   self._model_fields()
 
     def _model_fields(self):
         if self.return_type in [NoneType, int, str, bool]:
