@@ -30,7 +30,9 @@ class SQLQueryDecorator:
     """
     
     def __init__(
-        self, 
+        self,
+
+
         name: Optional[str] = None, 
         regen: Optional[bool] = None,
         repair: Optional[int] = 0,
@@ -55,6 +57,8 @@ class SQLQueryDecorator:
                                                    for SQL generation.
         """
         self.name = name
+
+
         self.regen = regen
         self.cache_dir = cache_dir
         self.schema = schema or self.load_file(schema_path)
@@ -97,7 +101,7 @@ class SQLQueryDecorator:
         """
         template_name = self.name or f"{func.__name__}.sql"
         fn_spec = FunctionSpec(func)
-        prompt_generator = SQLPromptGenerator(
+        prompt_generator =    SQLPromptGenerator(
             fn_spec, 
             template_name, 
             self.system_prompt, 
