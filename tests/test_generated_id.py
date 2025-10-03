@@ -1,6 +1,9 @@
 from typing import List, Optional
-from tests import common
+
 from pydantic import BaseModel, Field
+
+from tests import common
+
 
 class User(BaseModel):
     id: Optional[int] = Field(default=None)

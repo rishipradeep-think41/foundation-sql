@@ -1,6 +1,8 @@
 from typing import List, Optional
-from tests import common
+
 from pydantic import BaseModel
+
+from tests import common
 
 
 class Workspace(BaseModel):

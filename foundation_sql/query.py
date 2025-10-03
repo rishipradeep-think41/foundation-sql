@@ -1,14 +1,12 @@
-import os
 import functools
-from typing import Any, Callable, Optional
-
-from foundation_sql.prompt import SQLPromptGenerator, FunctionSpec
-from foundation_sql.gen import SQLGenerator
-from foundation_sql.cache import SQLTemplateCache
-from foundation_sql import db
-from typing import Callable, Dict, Optional
-
+import os
 from importlib import resources as impresources
+from typing import Any, Callable, Dict, Optional
+
+from foundation_sql import db
+from foundation_sql.cache import SQLTemplateCache
+from foundation_sql.gen import SQLGenerator
+from foundation_sql.prompt import FunctionSpec, SQLPromptGenerator
 
 DEFAULT_SYSTEM_PROMPT = impresources.read_text('foundation_sql', 'prompts.md')
 

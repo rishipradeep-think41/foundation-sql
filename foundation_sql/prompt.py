@@ -1,8 +1,8 @@
 import inspect
 import json
+from datetime import datetime
 from types import NoneType
 from typing import Any, Callable, Dict, Optional, Type, Union, get_type_hints
-from datetime import datetime
 
 from pydantic import BaseModel
 

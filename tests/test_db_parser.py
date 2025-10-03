@@ -5,12 +5,11 @@ Tests for the database query parser functions.
 import unittest
 from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import List, Optional
+
+from pydantic import BaseModel, Field
 
 from foundation_sql import db
-from pydantic import BaseModel, Field
-from enum import Enum
-from typing import Optional, List
 from tests import common
 
 # --- Test SQL Schema ---

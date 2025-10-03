@@ -1,6 +1,8 @@
 from typing import List
-from tests import common
+
 from pydantic import BaseModel
+
+from tests import common
 
 
 class User(BaseModel):

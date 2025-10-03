@@ -1,6 +1,7 @@
 import os
 from typing import Optional
 
+
 class SQLTemplateCache:
     """
     Simple file-based cache using file names as keys.

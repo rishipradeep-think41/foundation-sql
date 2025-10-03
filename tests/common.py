@@ -1,9 +1,11 @@
-import unittest
 import os
+import unittest
+
+from dotenv import load_dotenv
+
 from foundation_sql import db
 from foundation_sql.query import SQLQueryDecorator
 
-from dotenv import load_dotenv
 load_dotenv()
 
 DB_URL = os.environ.get("DATABSE_URL", "sqlite:///:memory:")

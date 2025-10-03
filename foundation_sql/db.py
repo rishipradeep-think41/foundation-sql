@@ -4,15 +4,15 @@ Database operations module for Foundation.
 
 import logging
 import os
+from datetime import datetime
 from types import NoneType
-from typing import Dict, Any, Optional, Type, Union, List
+from typing import Any, Dict, List, Optional, Type, Union
+
+from jinja2sql import Jinja2SQL
 from pydantic import BaseModel
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import SQLAlchemyError
-
-from jinja2sql import Jinja2SQL
-from datetime import datetime
 
 NESTED_SPLITTER = "."
 # Singleton instance

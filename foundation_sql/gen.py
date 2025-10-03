@@ -1,6 +1,8 @@
 import logging
-from openai import OpenAI
 import re
+
+from openai import OpenAI
+
 
 class SQLGenerator:
     """
