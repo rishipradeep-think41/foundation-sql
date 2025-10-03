@@ -4,3 +4,8 @@ sqlalchemy
 jinja2sql
 pydantic
 openai
+
+# Development dependencies
+isort
+black
+
