@@ -43,17 +43,20 @@ class SQLGenerator:
         
         Args:
             prompt (str): Detailed prompt for SQL generation
-        
+            
         Returns:
             str: Generated SQL template
         """
         response = self.client.chat.completions.create(
-            model=self.model,  # Use an appropriate model
+            model=self.model,
             messages=[
                 {"role": "system", "content": prompt}
             ]
         )
         
         generated_sql = response.choices[0].message.content.strip()
-        sql_template = re.sub(r'^```sql\n|^```\n|\n```$', '', generated_sql, flags=re.MULTILINE)
+        
+        # Remove ```sql or ``` fences
+        sql_template = re.sub(r"^```sql\s*|^```\s*|```$", "", generated_sql, flags=re.MULTILINE).strip()
+        
         return sql_template
