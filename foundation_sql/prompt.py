@@ -20,15 +20,13 @@ class FunctionSpec:
         self.return_type, self.wrapper = self._extract_return_model(func)
         self.signature = inspect.signature(func)
 
-
         self.docstring = inspect.getdoc(func) or ""
-        self.model_fields =   self._model_fields()
+        self.model_fields = self._model_fields()
 
     def _model_fields(self):
         if self.return_type in [NoneType, int, str, bool]:
             return {}
         return {k: str(v) for k, v in self.return_type.model_fields.items()}
-
 
     def _extract_kwargs(self, func: Callable) -> Dict[str, Type]:
         """
@@ -42,8 +40,8 @@ class FunctionSpec:
         """
         signature = inspect.signature(func)
         return {
-            name: param.annotation 
-            for name, param in signature.parameters.items() 
+            name: param.annotation
+            for name, param in signature.parameters.items()
             if param.annotation is not param.empty
         }
 
@@ -67,57 +65,60 @@ class FunctionSpec:
     def _extract_return_model(self, func: Callable) -> (Type[BaseModel], Optional[str]):
         """
         Extract the return model type from a function's type annotations.
-        
+
         Args:
             func (Callable): Function to analyze
-        
+
         Returns:
             Tuple containing:
             - Pydantic model class
             - Wrapper type ('list' or None)
-        
+
         Raises:
             ValueError: If return type is invalid or not a Pydantic model
         """
         hints = get_type_hints(func)
-        if 'return' not in hints:
-            raise ValueError(f'Function {func.__name__} must have a return type annotation')
-        
-        return_type = hints['return']
+        if "return" not in hints:
+            raise ValueError(
+                f"Function {func.__name__} must have a return type annotation"
+            )
+
+        return_type = hints["return"]
         wrapper = None
-        
+
         # Handle Optional[Model]
-        if hasattr(return_type, '__origin__') and return_type.__origin__ is Union:
+        if hasattr(return_type, "__origin__") and return_type.__origin__ is Union:
             args = return_type.__args__
             if len(args) == 2 and args[1] is type(None):
                 return_type = args[0]
-        
-        # Handle List[Model]
-        if hasattr(return_type, '__origin__') and return_type.__origin__ is list:
-            wrapper = 'list'
-            return_type = return_type.__args__[0]
-        
-        return return_type, wrapper
 
+        # Handle List[Model]
+        if hasattr(return_type, "__origin__") and return_type.__origin__ is list:
+            wrapper = "list"
+            return_type = return_type.__args__[0]
+
+        return return_type, wrapper
 
 
 class SQLPromptGenerator:
     """
     Generates prompts for SQL template generation based on function context and predefined schemas.
-    
+
     Attributes:
         func (FunctionSpec): Function to generate SQL for
         template_name (str): Name of the SQL template
     """
-    
-    def __init__(self, func_spec: FunctionSpec, 
+
+    def __init__(
+        self,
+        func_spec: FunctionSpec,
         template_name: str,
         system_prompt: str,
-        schema: Optional[str] = None
-        ):
+        schema: Optional[str] = None,
+    ):
         """
         Initialize the SQL prompt generator.
-        
+
         Args:
             func (FunctionSpec): Function to generate SQL for
             template_name (str): Name of the SQL template
@@ -130,10 +131,15 @@ class SQLPromptGenerator:
         self.schema = schema
         self.system_prompt = system_prompt
 
-    def generate_prompt(self, kwargs: Dict[str, Any], error: Optional[str] = None, prev_template: Optional[str] = None) -> str:
+    def generate_prompt(
+        self,
+        kwargs: Dict[str, Any],
+        error: Optional[str] = None,
+        prev_template: Optional[str] = None,
+    ) -> str:
         """
         Generate a comprehensive prompt for SQL template generation.
-        
+
         Returns:
             str: Detailed prompt with function context and schema
         """
@@ -150,7 +156,6 @@ When running it, following error was encountered:
 Review the error and suggest an improved SQL template that works.
 """
 
-        
         return f"""
 {self.system_prompt}
 ----------------

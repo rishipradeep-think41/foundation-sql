@@ -11,6 +11,7 @@ class User(BaseModel):
     email: str
     role: str
 
+
 TABLES_SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
     id VARCHAR(36) PRIMARY KEY,
@@ -24,12 +25,14 @@ CREATE TABLE IF NOT EXISTS users (
 
 query = common.create_query(schema=TABLES_SCHEMA)
 
+
 @query
 def get_users() -> List[User]:
     """
     Gets all users.
     """
     pass
+
 
 @query
 def create_user(user: User) -> int:
@@ -38,17 +41,18 @@ def create_user(user: User) -> int:
     """
     pass
 
+
 class TestQuery(common.DatabaseTests):
 
     schema_sql = TABLES_SCHEMA
-        
+
     def test_users(self):
         users = get_users()
         self.assertEqual(len(users), 0)
-        
+
         user = User(id="xxx", name="John Doe", email="john@example.com", role="user")
         create_user(user=user)
-        
+
         users = get_users()
         self.assertEqual(len(users), 1)
         self.assertEqual(users[0], user)

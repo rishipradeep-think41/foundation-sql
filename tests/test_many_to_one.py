@@ -9,11 +9,13 @@ class Workspace(BaseModel):
     id: int
     name: str
 
+
 class Task(BaseModel):
     id: int
     workspace: Workspace
     title: str
     description: Optional[str] = None
+
 
 TABLES_SCHEMA = """
 CREATE TABLE IF NOT EXISTS workspaces (
@@ -32,6 +34,7 @@ CREATE TABLE IF NOT EXISTS tasks (
 
 query = common.create_query(schema=TABLES_SCHEMA)
 
+
 @query
 def create_workspace(name: str) -> Workspace:
     """
@@ -39,12 +42,16 @@ def create_workspace(name: str) -> Workspace:
     """
     pass
 
+
 @query
-def add_task_to_workspace(workspace: Workspace, title: str, description: Optional[str] = None) -> Task:
+def add_task_to_workspace(
+    workspace: Workspace, title: str, description: Optional[str] = None
+) -> Task:
     """
     Inserts a new task into the workspace and returns the Task object.
     """
     pass
+
 
 @query
 def get_tasks_for_workspace(workspace: Workspace) -> List[Task]:
@@ -52,6 +59,7 @@ def get_tasks_for_workspace(workspace: Workspace) -> List[Task]:
     Returns all tasks for a workspace as Task objects with nested workspace.
     """
     pass
+
 
 class TestWorkspaceTasks(common.DatabaseTests):
     schema_sql = TABLES_SCHEMA
@@ -62,8 +70,12 @@ class TestWorkspaceTasks(common.DatabaseTests):
         self.assertIsInstance(ws, Workspace)
 
         # Add tasks
-        task1 = add_task_to_workspace(workspace=ws, title="Setup repo", description="Initialize git repository")
-        task2 = add_task_to_workspace(workspace=ws, title="Write docs", description="Document the setup process")
+        task1 = add_task_to_workspace(
+            workspace=ws, title="Setup repo", description="Initialize git repository"
+        )
+        task2 = add_task_to_workspace(
+            workspace=ws, title="Write docs", description="Document the setup process"
+        )
         self.assertIsInstance(task1, Task)
         self.assertIsInstance(task2, Task)
 
