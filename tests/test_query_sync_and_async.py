@@ -1,20 +1,21 @@
+import inspect
 import os
 import shutil
 import unittest
-import inspect
 from typing import List
 
 from pydantic import BaseModel
 
-from foundation_sql.query import SQLQueryDecorator
 from foundation_sql import db
 from foundation_sql.db_drivers import AsyncpgAdapter
-
+from foundation_sql.query import SQLQueryDecorator
 
 SQLITE_DB_URL = "sqlite:///__test_sync.sqlite3"
 
 # Attempt to ensure DATABASE_URL is available by reading .env if needed
-if not os.environ.get("DATABASE_URL") and os.path.exists(os.path.join(os.path.dirname(__file__), "..", ".env")):
+if not os.environ.get("DATABASE_URL") and os.path.exists(
+    os.path.join(os.path.dirname(__file__), "..", ".env")
+):
     env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".env"))
     try:
         with open(env_path, "r") as f:
@@ -30,7 +31,9 @@ if not os.environ.get("DATABASE_URL") and os.path.exists(os.path.join(os.path.di
     except Exception:
         pass
 
-ASYNC_DB_URL = os.environ.get("DATABASE_URL")  # e.g., postgresql://user:pass@localhost:5432/dbname
+ASYNC_DB_URL = os.environ.get(
+    "DATABASE_URL"
+)  # e.g., postgresql://user:pass@localhost:5432/dbname
 CACHE_DIR_SYNC = "__sql__/__sql_sync__"
 CACHE_DIR_ASYNC = "__sql__/__sql_async__"
 
@@ -56,7 +59,9 @@ class TestSQLQueryDecoratorSync(unittest.TestCase):
         with open(os.path.join(CACHE_DIR_SYNC, "get_users.sql"), "w") as f:
             f.write("SELECT id, name FROM users ORDER BY id;")
         with open(os.path.join(CACHE_DIR_SYNC, "create_user.sql"), "w") as f:
-            f.write("INSERT INTO users (id, name) VALUES ({{ user.id }}, {{ user.name | tojson }});")
+            f.write(
+                "INSERT INTO users (id, name) VALUES ({{ user.id }}, {{ user.name | tojson }});"
+            )
 
         # Prepare SQLite DB file cleanly
         if os.path.exists("__test_sync.sqlite3"):
@@ -78,7 +83,9 @@ class TestSQLQueryDecoratorSync(unittest.TestCase):
         db.DATABASES.clear()
 
     def test_sync_wrappers_and_execution(self):
-        query = SQLQueryDecorator(schema=self.TABLES_SCHEMA, db_url=SQLITE_DB_URL, cache_dir=CACHE_DIR_SYNC)
+        query = SQLQueryDecorator(
+            schema=self.TABLES_SCHEMA, db_url=SQLITE_DB_URL, cache_dir=CACHE_DIR_SYNC
+        )
 
         @query
         def get_users() -> List["TestSQLQueryDecoratorSync.User"]:
@@ -124,7 +131,9 @@ class TestSQLQueryDecoratorAsync(unittest.IsolatedAsyncioTestCase):
         with open(os.path.join(CACHE_DIR_ASYNC, "get_users.sql"), "w") as f:
             f.write("SELECT id, name FROM users ORDER BY id;")
         with open(os.path.join(CACHE_DIR_ASYNC, "create_user.sql"), "w") as f:
-            f.write("INSERT INTO users (id, name) VALUES ({{ user.id }}, {{ user.name | tojson }});")
+            f.write(
+                "INSERT INTO users (id, name) VALUES ({{ user.id }}, {{ user.name | tojson }});"
+            )
 
     async def asyncSetUp(self):
         # Initialize schema on Postgres using async adapter each test for isolation
@@ -138,7 +147,9 @@ class TestSQLQueryDecoratorAsync(unittest.IsolatedAsyncioTestCase):
         db.DATABASES.clear()
 
     async def test_async_wrappers_and_execution(self):
-        query = SQLQueryDecorator(schema=self.TABLES_SCHEMA, db_url=ASYNC_DB_URL, cache_dir=CACHE_DIR_ASYNC)
+        query = SQLQueryDecorator(
+            schema=self.TABLES_SCHEMA, db_url=ASYNC_DB_URL, cache_dir=CACHE_DIR_ASYNC
+        )
 
         @query
         async def get_users() -> List["TestSQLQueryDecoratorAsync.User"]:

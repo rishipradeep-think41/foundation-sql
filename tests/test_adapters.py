@@ -2,9 +2,8 @@ import os
 import unittest
 from typing import Any, Dict, List
 
-from foundation_sql.db_drivers import SQLAlchemyAdapter
 from foundation_sql import db
-
+from foundation_sql.db_drivers import SQLAlchemyAdapter
 
 SYNC_DB_URL = "sqlite:///:memory:"
 

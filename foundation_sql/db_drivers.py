@@ -3,15 +3,14 @@ from __future__ import annotations
 import logging
 import re  # Add missing import
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional, List
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
+import asyncpg
+from jinja2sql import Jinja2SQL
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import SQLAlchemyError
-
-from jinja2sql import Jinja2SQL
-from datetime import datetime
-import asyncpg
 
 logger = logging.getLogger(__name__)
 
@@ -21,25 +20,26 @@ class EngineAdapter(ABC):
 
     # ---------- Sync API ----------
     @abstractmethod
-    def init_schema(self, schema_sql: str) -> None:
-        ...
+    def init_schema(self, schema_sql: str) -> None: ...
 
     @abstractmethod
-    def run_sql(self, template: str, data: Dict[str, Any]) -> Any:
-        ...
+    def run_sql(self, template: str, data: Dict[str, Any]) -> Any: ...
 
     @abstractmethod
-    def close(self) -> None:
-        ...
+    def close(self) -> None: ...
 
     # ---------- Async API (optional) ----------
-    async def init_pool_async(self) -> None:  # pragma: no cover - to be implemented by async adapters
+    async def init_pool_async(
+        self,
+    ) -> None:  # pragma: no cover - to be implemented by async adapters
         raise NotImplementedError
 
     async def init_schema_async(self, schema_sql: str) -> None:  # pragma: no cover
         raise NotImplementedError
 
-    async def run_sql_async(self, template: str, data: Dict[str, Any]) -> Any:  # pragma: no cover
+    async def run_sql_async(
+        self, template: str, data: Dict[str, Any]
+    ) -> Any:  # pragma: no cover
         raise NotImplementedError
 
     async def close_async(self) -> None:  # pragma: no cover
@@ -59,20 +59,22 @@ class SQLAlchemyAdapter(EngineAdapter):
     def init_schema(self, schema_sql: str) -> None:
         with self.engine.begin() as conn:
             try:
-                for statement in schema_sql.split(';'):
+                for statement in schema_sql.split(";"):
                     if statement.strip():
                         conn.execute(text(statement))
             except SQLAlchemyError as e:
-                raise RuntimeError(f'Failed to initialize schema: {str(e)}') from e
+                raise RuntimeError(f"Failed to initialize schema: {str(e)}") from e
 
     def run_sql(self, template: str, data: Dict[str, Any]) -> Any:
         # ensure now is available
-        if 'now' not in data:
-            data['now'] = datetime.now
+        if "now" not in data:
+            data["now"] = datetime.now
 
         try:
             # Normalize templates: remove explicit tojson filters to allow binding
-            normalized = re.sub(r"\{\{\s*([^}]+?)\s*\|\s*tojson\s*\}\}", r"{{ \1 }}", template)
+            normalized = re.sub(
+                r"\{\{\s*([^}]+?)\s*\|\s*tojson\s*\}\}", r"{{ \1 }}", template
+            )
             query, params = self.j2sql.from_string(normalized, context=data)
         except Exception as e:
             raise ValueError(
@@ -82,7 +84,9 @@ class SQLAlchemyAdapter(EngineAdapter):
         with self.engine.connect() as conn:
             with conn.begin():
                 try:
-                    statements = [stmt.strip() for stmt in query.split(';') if stmt.strip()]
+                    statements = [
+                        stmt.strip() for stmt in query.split(";") if stmt.strip()
+                    ]
                     total_rows = 0
                     last_result = None
 
@@ -137,23 +141,25 @@ class AsyncpgAdapter(EngineAdapter):
         assert self.pool is not None
         async with self.pool.acquire() as conn:
             # Execute statements sequentially to ensure order
-            for statement in [s.strip() for s in schema_sql.split(';') if s.strip()]:
+            for statement in [s.strip() for s in schema_sql.split(";") if s.strip()]:
                 try:
                     logger.debug(f"Executing schema statement: {statement}")
                     await conn.execute(statement)
                 except Exception as e:
                     logger.error(f"Failed to execute schema statement: {statement}")
-                    raise RuntimeError(f"Failed to execute schema statement: {str(e)}") from e
+                    raise RuntimeError(
+                        f"Failed to execute schema statement: {str(e)}"
+                    ) from e
 
     async def run_sql_async(self, template: str, data: Dict[str, Any]) -> Any:
         await self.init_pool_async()
         assert self.pool is not None
 
-        if 'now' not in data:
-            data['now'] = datetime.now
+        if "now" not in data:
+            data["now"] = datetime.now
 
         # Special handling for templates without parameters
-        if '{{' not in template:
+        if "{{" not in template:
             # No template variables, execute directly
             async with self.pool.acquire() as conn:
                 is_select = template.strip().lower().startswith("select")
@@ -167,15 +173,19 @@ class AsyncpgAdapter(EngineAdapter):
         try:
             # Add the same template normalization as SQLAlchemyAdapter
             # Normalize templates: remove explicit tojson filters to allow binding
-            normalized = re.sub(r"\{\{\s*([^}]+?)\s*\|\s*tojson\s*\}\}", r"{{ \1 }}", template)
+            normalized = re.sub(
+                r"\{\{\s*([^}]+?)\s*\|\s*tojson\s*\}\}", r"{{ \1 }}", template
+            )
             # jinja2sql generates SQL with $1, $2... placeholders and params in correct order
             query, params_list = self.j2sql.from_string(normalized, context=data)
-            
+
             # Debug: log parameter types
             logger.debug(f"Rendered query: {query}")
             logger.debug(f"Parameter values: {params_list}")
-            logger.debug(f"Parameter types: {[(type(p).__name__, p) for p in params_list]}")
-            
+            logger.debug(
+                f"Parameter types: {[(type(p).__name__, p) for p in params_list]}"
+            )
+
         except Exception as e:
             raise ValueError(
                 f"Failed to render SQL. Likely SQL template & Parameter mismatch: {str(e)}"
@@ -184,34 +194,40 @@ class AsyncpgAdapter(EngineAdapter):
         async with self.pool.acquire() as conn:
             try:
                 # Handle multiple statements like SQLAlchemyAdapter
-                statements = [stmt.strip() for stmt in query.split(';') if stmt.strip()]
+                statements = [stmt.strip() for stmt in query.split(";") if stmt.strip()]
                 total_rows = 0
                 last_result = None
 
                 logger.debug(f"Executing {len(statements)} statement(s)")
                 for i, statement in enumerate(statements):
                     logger.debug(f"Statement {i+1}: {statement}")
-                    
+
                     is_select = statement.strip().lower().startswith("select")
-                    
+
                     if is_select:
                         last_result = await conn.fetch(statement, *params_list)
                         total_rows += len(last_result)
                         logger.debug(f"SELECT returned {len(last_result)} rows")
                     else:
                         # Check if this is a schema operation or data operation
-                        is_schema_op = any(keyword in statement.upper() for keyword in 
-                                         ['CREATE', 'DROP', 'ALTER', 'TRUNCATE'])
-                        
+                        is_schema_op = any(
+                            keyword in statement.upper()
+                            for keyword in ["CREATE", "DROP", "ALTER", "TRUNCATE"]
+                        )
+
                         if is_schema_op:
                             # Schema operations typically don't use parameters
-                            logger.debug("Executing as schema operation (no parameters)")
+                            logger.debug(
+                                "Executing as schema operation (no parameters)"
+                            )
                             status = await conn.execute(statement)
                         else:
                             # Data operations use parameters
-                            logger.debug(f"Executing as data operation with parameters: {params_list}")
+                            logger.debug(
+                                f"Executing as data operation with parameters: {params_list}"
+                            )
                             status = await conn.execute(statement, *params_list)
-                            
+
                         stmt_rows = _parse_rowcount(status)
                         total_rows += stmt_rows
                         logger.debug(f"Statement affected {stmt_rows} rows")
@@ -221,23 +237,29 @@ class AsyncpgAdapter(EngineAdapter):
                     rows = [dict(r) for r in last_result]
                     logger.debug(f"Returning {len(rows)} rows")
                     return rows
-                
+
                 logger.debug(f"Returning row count: {total_rows}")
                 return total_rows
-                
+
             except Exception as e:
-                error_msg = (f"Failed to execute SQL: {str(e)}\n"
-                           f"Rendered SQL: {query}\n"
-                           f"Parameters: {params_list}\n"
-                           f"Parameter types: {[type(p).__name__ for p in params_list]}")
+                error_msg = (
+                    f"Failed to execute SQL: {str(e)}\n"
+                    f"Rendered SQL: {query}\n"
+                    f"Parameters: {params_list}\n"
+                    f"Parameter types: {[type(p).__name__ for p in params_list]}"
+                )
                 logger.error(error_msg)
                 raise RuntimeError(error_msg) from e
 
     # Sync methods are not supported for asyncpg adapter
-    def init_schema(self, schema_sql: str) -> None:  # pragma: no cover - sync not supported
+    def init_schema(
+        self, schema_sql: str
+    ) -> None:  # pragma: no cover - sync not supported
         raise NotImplementedError("Use init_schema_async with AsyncpgAdapter")
 
-    def run_sql(self, template: str, data: Dict[str, Any]) -> Any:  # pragma: no cover - sync not supported
+    def run_sql(
+        self, template: str, data: Dict[str, Any]
+    ) -> Any:  # pragma: no cover - sync not supported
         raise NotImplementedError("Use run_sql_async with AsyncpgAdapter")
 
     def close(self) -> None:  # pragma: no cover - sync not supported

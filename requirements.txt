@@ -6,3 +6,7 @@ pydantic
 openai
 asyncpg
 psycopg2-binary
+
+# Development dependencies
+isort
+black

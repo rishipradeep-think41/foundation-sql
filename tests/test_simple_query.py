@@ -1,8 +1,10 @@
-from typing import List
-from tests import common
-from pydantic import BaseModel
 import os
 import shutil
+from typing import List
+
+from pydantic import BaseModel
+
+from tests import common
 
 
 class User(BaseModel):
@@ -10,6 +12,7 @@ class User(BaseModel):
     name: str
     email: str
     role: str
+
 
 TABLES_SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
@@ -24,6 +27,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 query = common.create_query(schema=TABLES_SCHEMA)
 
+
 @query
 def get_users() -> List[User]:
     """
@@ -31,12 +35,14 @@ def get_users() -> List[User]:
     """
     pass
 
+
 @query
 def create_user(user: User) -> int:
     """
     Creates a new user.
     """
     pass
+
 
 class TestQuery(common.DatabaseTests):
 
@@ -81,14 +87,14 @@ class TestQuery(common.DatabaseTests):
                     """
                 ).strip()
             )
-        
+
     def test_users(self):
         users = get_users()
         self.assertEqual(len(users), 0)
-        
+
         user = User(id="xxx", name="John Doe", email="john@example.com", role="user")
         create_user(user=user)
-        
+
         users = get_users()
         self.assertEqual(len(users), 1)
         self.assertEqual(users[0], user)

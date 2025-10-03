@@ -38,4 +38,3 @@ ENV/
 .DS_Store
 
 __sql__
-fixtures

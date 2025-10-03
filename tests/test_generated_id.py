@@ -1,12 +1,16 @@
 from typing import List, Optional
-from tests import common
+
 from pydantic import BaseModel, Field
+
+from tests import common
+
 
 class User(BaseModel):
     id: Optional[int] = Field(default=None)
     name: str
     email: str
     role: str
+
 
 TABLES_SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
@@ -22,12 +26,14 @@ CREATE TABLE IF NOT EXISTS users (
 
 query = common.create_query(schema=TABLES_SCHEMA)
 
+
 @query
 def get_users() -> List[User]:
     """
     Gets all users.
     """
     pass
+
 
 @query
 def create_user(user: User) -> User:
@@ -36,17 +42,18 @@ def create_user(user: User) -> User:
     """
     pass
 
+
 class TestQuery(common.DatabaseTests):
 
     schema_sql = TABLES_SCHEMA
-        
+
     def test_users(self):
         users = get_users()
         self.assertEqual(len(users), 0)
-        
+
         user = User(name="John Doe", email="john@example.com", role="user")
         create_user(user=user)
-        
+
         users = get_users()
         self.assertEqual(len(users), 1)
         self.assertEqual(users[0].id, 1)
